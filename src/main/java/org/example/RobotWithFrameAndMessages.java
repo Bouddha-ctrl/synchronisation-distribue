@@ -115,12 +115,12 @@ public class RobotWithFrameAndMessages extends Node {
     }
 
     public void onSelectionRead(){
-        System.out.println("Robot " + this.getID() + " asks for read");
+        Logger.log("Robot " + this.getID() + " asks for read");
         AskForRead();
         setColor(Color.YELLOW);
     }
     public void onSelectionWrite(){
-        System.out.println("Robot " + this.getID() + " asks for write");
+        Logger.log("Robot " + this.getID() + " asks for write");
         AskForWrite();
         setColor(Color.ORANGE);
     }
@@ -129,7 +129,7 @@ public class RobotWithFrameAndMessages extends Node {
 
         Message rcvMsg =  msg.getMessage();
         SyncMessage mm = (SyncMessage) rcvMsg.getContent();
-        System.out.println("Node " + this.getID() + " received " + mm.getMsgType() + " from " + mm.getRobotId());
+        Logger.log("Node " + this.getID() + " received " + mm.getMsgType() + " from " + mm.getRobotId());
         switch ( mm.getMsgType()) {
             case REQ_READ:
                 receiveReqRead( msg.getEmet(), mm.getRobotId());
@@ -147,7 +147,7 @@ public class RobotWithFrameAndMessages extends Node {
                 receiveRel( msg.getEmet() );
                 break;
             default:
-                System.out.println("Error message type");
+                Logger.log("Error message type");
         }
         displayState( "Message recu" );
 
@@ -239,14 +239,14 @@ public class RobotWithFrameAndMessages extends Node {
         }
     }
     public void startWrite(){
-        System.out.println("Robot " + this.getID() + " starts writing");
+        Logger.log("Robot " + this.getID() + " starts writing");
         randomlyTime();
         onWrite = true;
         waitForWrite = false;
     }
 
     public void endWrite(){
-        System.out.println("Robot " + this.getID() + " ends writing");
+        Logger.log("Robot " + this.getID() + " ends writing");
         onWrite = false;
         myTurn = false;
         if (reader.size() > 0){
@@ -275,7 +275,7 @@ public class RobotWithFrameAndMessages extends Node {
     }
 
     public void startRead(){
-        System.out.println("Robot " + this.getID() + " starts reading");
+        Logger.log("Robot " + this.getID() + " starts reading");
         setColor(Color.GREEN);
         randomlyTime();
         onRead = true;
@@ -285,7 +285,7 @@ public class RobotWithFrameAndMessages extends Node {
     }
 
     public void endRead(){
-        System.out.println("Robot " + this.getID() + " ends reading");
+        Logger.log("Robot " + this.getID() + " ends reading");
         onRead = false;
         if (JETON)
             receiveRel(null);
@@ -337,6 +337,6 @@ public class RobotWithFrameAndMessages extends Node {
 
     public void randomlyTime(){
         criticalTime = 2 + rand.nextInt(5);
-        System.out.println("random time :"+criticalTime);
+        Logger.log("random time :"+criticalTime);
     }
 }
