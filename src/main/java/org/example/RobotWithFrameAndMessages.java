@@ -8,7 +8,7 @@ import java.util.stream.Collectors;
 
 public class RobotWithFrameAndMessages extends Node {
 
-    int myID;
+        int myID;
     Node owner = null;
     List<Node> neighborList;
     List<Node> reader;
@@ -22,7 +22,8 @@ public class RobotWithFrameAndMessages extends Node {
     boolean onWrite = false;
     boolean onRead = false;
     boolean waitForWrite = false;
-    boolean next = false;
+    List<Node> next = new ArrayList<Node>();
+
     boolean myTurn =  false;
     int nb_reader = 0;
 
@@ -45,7 +46,8 @@ public class RobotWithFrameAndMessages extends Node {
         state = state + "onWrite " + onWrite + " **\n";
         state = state + "onRead " + onRead + " **\n";
         state = state + "nb Reader " + nb_reader + " **\n";
-        state = state + "next " + next + " **\n";
+        state = state + "nb de next " + next.size() + " **\n";
+        //state = state + "next " + ((next!=null)?next.getID():-1) + " **\n";
         state = state + "Info " + info + " rcvd";
         df.display( state );
     }
@@ -72,7 +74,6 @@ public class RobotWithFrameAndMessages extends Node {
         neighborList = getNeighbors();
         if (!init) {
             if (this.getID() != 0) {
-
                 owner = neighborList.get(0);
             }else{
                 JETON = true;
@@ -161,7 +162,6 @@ public class RobotWithFrameAndMessages extends Node {
         nb_reader = 0;
         onWrite = false;
         waitForWrite = false;
-        next = false;
         JETON = false;
         myTurn = false;
         reader = new ArrayList<Node>();
@@ -181,19 +181,19 @@ public class RobotWithFrameAndMessages extends Node {
             return;
         }
 
-        reader.add(robot);
+        reader.add(sender);
     }
 
     public void receiveReqWrite(Node robot, int id){
         Node sender = getRobotById(id);
         if(owner == null){
-            if (JETON){
-                if(nb_reader == 0 && !onWrite && !waitForWrite){
-                    init();
-                    sendAckWrite(sender, myID);
-                }
-            }else
-                next = true;
+            if(JETON && nb_reader == 0 && !onWrite && !waitForWrite){
+                JETON = false;
+                sendAckWrite(sender, myID);
+            }
+            else
+                next.add(sender);
+
         }else
             sendReqWrite(owner, id);
 
@@ -217,9 +217,10 @@ public class RobotWithFrameAndMessages extends Node {
         if (nb_reader == 0)
             if (myTurn)
                 startWrite();
-            else if (next){
-                sendAckWrite(owner,myID);
-                init();
+            else if (!next.isEmpty()){
+                sendAckWrite(next.get(0),myID);
+                next.remove(0);
+                JETON = false;
             }
     }
 
@@ -227,7 +228,7 @@ public class RobotWithFrameAndMessages extends Node {
     public void AskForWrite(){
         setColor(Color.RED);
         waitForWrite = true;
-        if (!next && JETON){
+        if (owner == null){
             if (nb_reader == 0)
                 startWrite();
             else
@@ -247,6 +248,7 @@ public class RobotWithFrameAndMessages extends Node {
     public void endWrite(){
         System.out.println("Robot " + this.getID() + " ends writing");
         onWrite = false;
+        myTurn = false;
         if (reader.size() > 0){
             reader.forEach(node -> {
                 nb_reader++;
@@ -254,9 +256,10 @@ public class RobotWithFrameAndMessages extends Node {
             });
             reader = new ArrayList<Node>();
         }
-        if (nb_reader == 0 && next){
-            sendAckWrite(owner, myID);
-            init();
+        if (nb_reader == 0 && !next.isEmpty()){
+            sendAckWrite(next.get(0), myID);
+            next.remove(0);
+            JETON = false;
         }
 
         setColor(null);
@@ -264,7 +267,7 @@ public class RobotWithFrameAndMessages extends Node {
 
 
     public void AskForRead(){
-        if (JETON && !next){
+        if (JETON && owner == null){
             startRead();
         }else{
             sendReqRead(owner,myID);
